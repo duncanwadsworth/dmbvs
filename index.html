@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>dmbvs by duncanwadsworth</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>dmbvs</h1>
+        <p>Dirichlet-Multinomial Bayesian Variable Selection</p>
+
+        <p class="view"><a href="https://github.com/duncanwadsworth/dmbvs">View the Project on GitHub <small>duncanwadsworth/dmbvs</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/duncanwadsworth/dmbvs/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/duncanwadsworth/dmbvs/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/duncanwadsworth/dmbvs">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="dmbvs" class="anchor" href="#dmbvs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>dmbvs</h1>
+
+<hr>
+
+<h3>
+<a id="description" class="anchor" href="#description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Description</h3>
+
+<p>Bayesian variable selection for Dirichlet-Multinomial regression. For $n$ 
+samples, let $Y$ be an $n \times q$ matrix with $q$ taxa. Let $X$ be an 
+$n \times p$ matrix with $p$ covariates. By applying spike-and-slab priors to 
+the Dirichlet-Multinomial regression coefficients, we obtain concise 
+taxa/covariate associations. The methodology is further described in the 
+manuscript:</p>
+
+<blockquote>
+<p>Wadsworth, W. D., Argiento, R., Guindani, M., Galloway-Pena, J., Samuel, S. A., &amp; 
+Vannucci, M. (2016). An Integrative Bayesian Dirichlet-Multinomial Regression 
+Model for the Analysis of Taxonomic Abundances in Microbiome data.</p>
+</blockquote>
+
+<h3>
+<a id="contents" class="anchor" href="#contents" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contents</h3>
+
+<p>The repository contains </p>
+
+<ol>
+<li><p>C code implementing an MCMC sampler for Dirichlet-Multinomial Bayesian 
+Variable Selection (dmbvs) using spike-and-slab priors, </p></li>
+<li><p>R code to wrap and run the sampler from within R, </p></li>
+<li><p>a function for simulating data, </p></li>
+<li><p>and a "start-to-finish" script (<code>example_analysis_script.R</code>) demonstrating 
+usage of the code. </p></li>
+</ol>
+
+<h3>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h3>
+
+<ul>
+<li><p>The R code requires the <code>dirmult</code> and <code>MASS</code> packages. Please ensure those are 
+installed first. </p></li>
+<li><p>The C code relies on the <a href="https://www.gnu.org/software/gsl/">GNU Scientific Library (GSL)</a>. 
+GSL must be installed and modifications may need to be made to the 'library' 
+and 'include' paths in the Makefile.</p></li>
+<li><p>The main C file (<code>dmbvs.c</code>), as well as the Makefile to be used for compilation 
+of the code, can be found under the directory <code>code/</code>.</p></li>
+<li><p>On Linux and Mac the C code may be compiled with the Makefile from R using:</p></li>
+</ul>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-c"># must be in package's root directory</span>
+setwd(<span class="pl-s"><span class="pl-pds">"</span>dmbvs<span class="pl-pds">"</span></span>)
+system(<span class="pl-s"><span class="pl-pds">"</span>cd code; make<span class="pl-pds">"</span></span>)</pre></div>
+
+<ul>
+<li>If compilation has been successful there will be an executable called <code>dmbvs.x</code> 
+the <code>code/</code> directory. Data may be simulated and the MCMC code run using:</li>
+</ul>
+
+<div class="highlight highlight-source-r"><pre>source(file.path(<span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>wrapper.R<span class="pl-pds">"</span></span>))
+source(file.path(<span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>helper_functions.R<span class="pl-pds">"</span></span>))
+<span class="pl-v">simdata</span> <span class="pl-k">=</span> simulate_dirichlet_multinomial_regression(<span class="pl-v">n_obs</span> <span class="pl-k">=</span> <span class="pl-c1">100</span>, <span class="pl-v">n_vars</span> <span class="pl-k">=</span> <span class="pl-c1">50</span>,
+                                                    <span class="pl-v">n_taxa</span> <span class="pl-k">=</span> <span class="pl-c1">50</span>, <span class="pl-v">n_relevant_vars</span> <span class="pl-k">=</span> <span class="pl-c1">5</span>,
+                                                    <span class="pl-v">n_relevant_taxa</span> <span class="pl-k">=</span> <span class="pl-c1">5</span>)
+<span class="pl-v">results</span> <span class="pl-k">=</span> dmbvs(<span class="pl-v">XX</span> <span class="pl-k">=</span> <span class="pl-smi">simdata</span><span class="pl-k">$</span><span class="pl-smi">XX</span>[,<span class="pl-k">-</span><span class="pl-c1">1</span>], <span class="pl-v">YY</span> <span class="pl-k">=</span> <span class="pl-smi">simdata</span><span class="pl-k">$</span><span class="pl-smi">YY</span>, 
+                <span class="pl-v">intercept_variance</span> <span class="pl-k">=</span> <span class="pl-c1">10</span>, <span class="pl-v">slab_variance</span> <span class="pl-k">=</span> <span class="pl-c1">10</span>, 
+                <span class="pl-v">bb_alpha</span> <span class="pl-k">=</span> <span class="pl-c1">0.02</span>, <span class="pl-v">bb_beta</span> <span class="pl-k">=</span> <span class="pl-c1">1.98</span>, <span class="pl-v">GG</span> <span class="pl-k">=</span> <span class="pl-c1">1100L</span>, <span class="pl-v">thin</span> <span class="pl-k">=</span> <span class="pl-c1">10L</span>, <span class="pl-v">burn</span> <span class="pl-k">=</span> <span class="pl-c1">100L</span>,
+                <span class="pl-v">exec</span> <span class="pl-k">=</span> file.path(<span class="pl-s"><span class="pl-pds">"</span>.<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>dmbvs.x<span class="pl-pds">"</span></span>), <span class="pl-v">output_location</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>.<span class="pl-pds">"</span></span>)</pre></div>
+
+<ul>
+<li>Tested on:
+
+<ul>
+<li>Mac with R version 3.2.2 and GSL version 2.1 with the Apple LLVM version 
+7.0.2 compiler</li>
+<li>Red Hat Linux 6.6 with R version 3.1.2 and GSL version 2.1 and gcc 
+version 5.2.0</li>
+</ul>
+</li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/duncanwadsworth">duncanwadsworth</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>

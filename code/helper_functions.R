@@ -47,9 +47,9 @@ bfdr = function(mppi_vector, threshold = 0.1){
 #' @param mppi_threshold the threshold for inclusion in the plot
 #' @param inc_legend boolean to include the legend
 #' @param lwdx a scalar multiplier for growing or shrinking the widths of edges
-#' @param graph_layout either "circular" for a round layout or "bipartite" for 
+#' @param graph_layout either "circular" for a round layout or "bipartite" for
 #' a side-by-side layout
-#' @param lab_dist a scalar argument for the distance between node centers and 
+#' @param lab_dist a scalar argument for the distance between node centers and
 #' the node labels
 #' @param ... passthrough arguments
 #'
@@ -57,7 +57,7 @@ bfdr = function(mppi_vector, threshold = 0.1){
 #'
 #' @export
 association_plot = function(MPPI, mppi_threshold = 0.5, inc_legend = F,
-                            lwdx = 5, graph_layout = "circular", lab_dist = 2, 
+                            lwdx = 5, graph_layout = "circular", lab_dist = 2,
                             ...){
   if(any(!(colnames(MPPI) %in% c("covariates", "taxa", "mppi", "beta")))){
     stop("please ensure the column names of MPPI are correct\n*** they must be: covariates, taxa, mppi, beta")
@@ -108,7 +108,6 @@ association_plot = function(MPPI, mppi_threshold = 0.5, inc_legend = F,
         c.rotate(scales::rescale(x, c(0, 2 * pi), range(x)))
       }
       lab.locs = radian.rescale(x = 1:nrow(la), start = 0, direction = -1)
-      browser()
       graphics::plot(hh, layout = la,
                      edge.width = igraph::E(hh)$weight,
                      edge.lty = igraph::E(hh)$lty,

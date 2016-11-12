@@ -38,22 +38,33 @@ bfdr = function(mppi_vector, threshold = 0.1){
 #'
 #' @note requires the igraph package
 #'
-#' @param MPPI a data.frame with n_vars * n_cats rows and these four columns:
+#' @param MPPI a data.frame with n_vars x n_taxa rows and these four columns:
 #'  1) covariate: the names of the columns of X
-#'  2) category: the names of the columns of Y
-#'  3) mppi: the marginal posterior probability of inclusion for each category
+#'  2) taxa: the names of the columns of Y
+#'  3) mppi: the marginal posterior probability of inclusion for each taxa
 #'          by covariate parameter
-#'  4) beta: a point estimate of for each category by covariate parameter
+#'  4) beta: a point estimate of for each taxa by covariate parameter
 #' @param mppi_threshold the threshold for inclusion in the plot
 #' @param inc_legend boolean to include the legend
 #' @param lwdx a scalar multiplier for growing or shrinking the widths of edges
+#' @param graph_layout either "circular" for a round layout or "bipartite" for 
+#' a side-by-side layout
+#' @param lab_dist a scalar argument for the distance between node centers and 
+#' the node labels
 #' @param ... passthrough arguments
 #'
 #' @return a plot
 #'
 #' @export
 association_plot = function(MPPI, mppi_threshold = 0.5, inc_legend = F,
-                            lwdx = 5, ...){
+                            lwdx = 5, graph_layout = "circular", lab_dist = 2, 
+                            ...){
+  if(any(!(colnames(MPPI) %in% c("covariates", "taxa", "mppi", "beta")))){
+    stop("please ensure the column names of MPPI are correct\n*** they must be: covariates, taxa, mppi, beta")
+  }
+  if(!require(igraph)){
+    stop("please ensure the igraph package is installed")
+  }
   # first munge the data into a format easily read by graph_from_data_frame()
   mm = subset(MPPI, mppi > mppi_threshold)
   if(nrow(mm) == 0){ # when there are no relevant associations
@@ -63,29 +74,62 @@ association_plot = function(MPPI, mppi_threshold = 0.5, inc_legend = F,
   }else{ # when there are relevant associations
     mm$esign = round((sign(mm$beta) + 2)/3) + 1
     mm$emag = abs(mm$beta)
-    nn = mm[,c("covariate", "category", "esign", "emag")]
-    mppi = nn[order(nn$covariate, nn$category),]
+    mppi = mm[order(mm$covariates, mm$taxa),]
     # readin data.frame
     hh = igraph::graph_from_data_frame(mppi, directed = F)
     # modify graph characteristics
     igraph::E(hh)$weight = igraph::E(hh)$emag*lwdx
-    igraph::E(hh)$lty = igraph::E(hh)$esign
+    #igraph::E(hh)$lty = igraph::E(hh)$esign
+    igraph::E(hh)$lty = 1
     igraph::E(hh)$color = ifelse(igraph::E(hh)$esign == 2, 1, 2)
-    igraph::V(hh)$type = c(rep(T, times = length(unique(mppi$covariate))),
-                           rep(F, times = length(unique(mppi$category))))
-    # layout as a bipartite graph, for now the *gap arguments seem to be ignored
-    #coords = igraph::layout_as_bipartite(hh, hgap = 10, vgap = 10)
-    #igraph::plot(hh, layout = layout.bipartite, edge.width = E(hh)$weight,
-    #             edge.color = c("red", "blue")[E(hh)$color],
-    #vertex.color = c("orange", "green")[V(hh)$type + 1], ...)
-    graphics::plot(hh, layout = igraph::layout.circle, edge.width = igraph::E(hh)$weight,
-                   edge.color = c("red", "blue")[igraph::E(hh)$color],
-                   vertex.color = c("green", "yellow")[igraph::V(hh)$type + 1],
-                   vertex.shape = c("circle", "square")[igraph::V(hh)$type + 1],
-                   vertex.frame.color = "black", vertex.label.cex = 1.2,
-                   vertex.label.color = "black", vertex.label.family = "sans",
-                   vertex.label.font = 2, ...)
-    #plot(hh, layout = layout.bipartite, edge.width = E(hh)$weight, vertex.color = "white")
+    igraph::V(hh)$type = c(rep(T, times = length(unique(mppi$covariates))),
+                           rep(F, times = length(unique(mppi$taxa))))
+    # layout as a bipartite graph
+    if(graph_layout == "bipartite"){
+      la = layout.bipartite(hh, hgap = 20)
+      graphics::plot(hh, layout = la[,c(2,1)],
+                     edge.width = igraph::E(hh)$weight,
+                     edge.lty = igraph::E(hh)$lty,
+                     edge.color = c("red", "blue")[igraph::E(hh)$color],
+                     vertex.color = c("green", "yellow")[igraph::V(hh)$type + 1],
+                     vertex.shape = c("circle", "square")[igraph::V(hh)$type + 1],
+                     vertex.frame.color = "black", vertex.label.cex = 1.2,
+                     vertex.label.color = "black", vertex.label.family = "sans",
+                     vertex.label.font = 2,
+                     vertex.label.degree = c(2*pi, pi)[igraph::V(hh)$type + 1],
+                     vertex.label.dist = lab_dist, ...)
+    }
+    # layout as a circular graph
+    if(graph_layout == "circular"){
+      la = igraph::layout.circle(hh)
+      # from http://stackoverflow.com/questions/23209802/placing-vertex-label-outside-a-circular-layout-in-igraph
+      radian.rescale = function(x, start = 0, direction = 1) {
+        c.rotate = function(x) (x + start) %% (2 * pi) * direction
+        c.rotate(scales::rescale(x, c(0, 2 * pi), range(x)))
+      }
+      lab.locs = radian.rescale(x = 1:nrow(la), start = 0, direction = -1)
+      browser()
+      graphics::plot(hh, layout = la,
+                     edge.width = igraph::E(hh)$weight,
+                     edge.lty = igraph::E(hh)$lty,
+                     edge.color = c("red", "blue")[igraph::E(hh)$color],
+                     vertex.color = c("green", "yellow")[igraph::V(hh)$type + 1],
+                     vertex.shape = c("circle", "square")[igraph::V(hh)$type + 1],
+                     vertex.frame.color = "black", vertex.label.cex = 1.2,
+                     vertex.label.color = "black", vertex.label.family = "sans",
+                     vertex.label.font = 2, vertex.label.dist = lab_dist,
+                     vertex.label.degree = lab.locs)
+    }
+    # a black and white color scheme without vertex shapes
+    # graphics::plot(hh, layout = la,
+    #                edge.width = igraph::E(hh)$weight,
+    #                edge.color = "black",
+    #                vertex.color = c("grey", "white")[V(hh)$type + 1],
+    #                vertex.label.cex = 1.3,
+    #                vertex.label.color = "black", vertex.label.family = "sans",
+    #                vertex.label.font = c(2, 3)[igraph::V(hh)$type + 1],
+    #                vertex.size = 10, vertex.label.dist = 0.5,
+    #                vertex.label.degree = lab.locs)
     if(inc_legend){
       #legend("topright", legend = c("positive", "negative"), lty = c(1, 2), col = "grey50", lwd = 3)
       graphics::legend("topright", legend = c("positive", "negative"), lwd = c(3, 3), col = c("blue","red"))
@@ -98,19 +142,22 @@ association_plot = function(MPPI, mppi_threshold = 0.5, inc_legend = F,
 #' @note requires the ggplot2 package
 #'
 #' @param count_matrix a matrix of integers
-#' @param titulo an optional title
+#' @param title an optional title
 #'
 #' @return a plot
 #'
 #' @export
-abundance_plot = function(count_matrix, titulo = ""){
+abundance_plot = function(count_matrix, title = ""){
+  if(!require(ggplot2)){
+    stop("please ensure the ggplot2 package is installed")
+  }
   # sort matrix by column means - make pretty
   ss = count_matrix[, order(colMeans(count_matrix), decreasing = T)]
   # coordinates
   xyz = cbind(expand.grid(1:dim(ss)[1], 1:dim(ss)[2]), as.vector(ss), as.vector(ss) > 0)
   names(xyz) = c("Sample.ID","Phylotype","Counts","Presence")
   print(ggplot2::ggplot(xyz, ggplot2::aes(y = Sample.ID, x = Phylotype, fill = log(Counts))) +
-          ggplot2::geom_raster() + ggplot2::theme_bw() + ggplot2::ggtitle(titulo))
+          ggplot2::geom_raster() + ggplot2::theme_bw() + ggplot2::ggtitle(title))
 }
 
 

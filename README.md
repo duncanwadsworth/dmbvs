@@ -28,7 +28,9 @@ Variable Selection (dmbvs) using spike-and-slab priors,
 3. a function for simulating data, 
 
 4. and a "start-to-finish" script (`example_analysis_script.R`) demonstrating 
-usage of the code. 
+usage of the code. This script gives reasonable default settings for the 
+hyperparameters and MCMC parameters for the example simulated data. Settings may 
+change for other data.
 
 ### Usage
 

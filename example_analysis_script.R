@@ -13,6 +13,8 @@
 # -----------------------------------------------------------------------------
 
 # -- simulate data ------------------------------------------------------------
+# this simulates a dataset identical in dimension to the ones used in the
+# simulation sections of the manuscript
 source(file.path("code", "helper_functions.R"))
 simdata = simulate_dirichlet_multinomial_regression(n_obs = 100, n_vars = 50,
                                                     n_taxa = 50, n_relevant_vars = 5,
@@ -36,13 +38,18 @@ dim(YY)
 dim(XX)
 
 # MCMC and hyperparameters
-#GG = 301L; thin = 2L; burn = 101L; # for testing
-GG = 11001L; thin = 10L; burn = 1001L;
-cat("number of kept iterations:", (GG - burn)/thin, "\n")
+# these values are reasonable for the data simulated here but should be changed
+# depending on the characteristics of other datasets
+GG = 301L; thin = 2L; burn = 101L; # fast, for testing
+#GG = 11001L; thin = 10L; burn = 1001L; # good defaults, in this case
+# reasonable default parameters, see further discussion in the manuscript
 bb_alpha = 0.02; bb_beta = 2 - bb_alpha
-cat("Beta-Binomial mean:", bb_alpha/(bb_alpha + bb_beta), "\n")
 proposal_alpha = 0.5; proposal_beta = 0.5
 slab_variance = 10; intercept_variance = 10
+
+# description
+cat("Beta-Binomial mean:", bb_alpha/(bb_alpha + bb_beta), "\n")
+cat("Number of kept iterations:", (GG - burn)/thin, "\n")
 
 # run the algorithm
 results = dmbvs(XX = XX, YY = YY, intercept_variance = intercept_variance,
@@ -80,3 +87,6 @@ selected = which(mppi > 0.5)
 fortraces = selected[sample(length(selected), 10)]
 plot.ts(results$beta[,fortraces], main = "Some selected beta traceplots",
         xlab = "iteration", ylab = "")
+
+# visualize the associations
+association_plot(MPPI[,-5], graph_layout = "bipartite", main = "Sample Results")

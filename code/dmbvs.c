@@ -405,7 +405,7 @@ void dmbvs_gibbs(double **XX, int **YY, double *alpha, double *beta,
     }
     
     // first a round of the between-model step for every covariate within every taxa
-    for(jj = 0 ; jj < n_cats ; jj++){
+    jj=floor(gsl_rng_uniform(rando)*n_cats);//for(jj = 0 ; jj < n_cats ; jj++){
       
       // fill in beta_temp
       for(kk = 0 ; kk < n_vars ; kk++){
@@ -421,7 +421,7 @@ void dmbvs_gibbs(double **XX, int **YY, double *alpha, double *beta,
         hh = kk + jj * n_vars;
         beta[hh] = beta_temp[kk];
       }
-    }
+    //}
     
     // now an accelerating within-model step 
     for(jj = 0 ; jj < n_cats ; jj++){
@@ -562,7 +562,7 @@ void update_beta_jj(double **XX, double **JJ, double **loggamma,
   
   double log_full_beta, log_full_beta_p;
   
-  for(kk = 0 ; kk < n_vars ; kk++){ 
+  kk=floor(gsl_rng_uniform(rando)*n_vars);//for(kk = 0 ; kk < n_vars ; kk++){ 
     
     // Stride for full (n_vars * n_cats) vector
     hh = kk + jj * n_vars;
@@ -611,7 +611,7 @@ void update_beta_jj(double **XX, double **JJ, double **loggamma,
         
       } // Close MH accept
     } // Close inclusion_indicator[hh] == 1
-  } // Close for kk
+  //} // Close for kk
 } // Close function
 
 void between_models_jj(double **XX, double **JJ, double **loggamma, 

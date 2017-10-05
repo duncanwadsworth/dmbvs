@@ -52,13 +52,24 @@ cat("Beta-Binomial mean:", bb_alpha/(bb_alpha + bb_beta), "\n")
 cat("Number of kept iterations:", (GG - burn)/thin, "\n")
 
 # run the algorithm
+tic()
 results = dmbvs(XX = XX, YY = YY, intercept_variance = intercept_variance,
                 slab_variance = slab_variance, bb_alpha = bb_alpha,
                 bb_beta = bb_beta, GG = GG, thin = thin, burn = burn,
                 init_beta = "warmstart", init_alpha = "warmstart",
                 proposal_alpha = proposal_alpha, proposal_beta = proposal_beta,
-                exec = executable_location,
+                exec = executable_location, selection_type = "ss",
                 output_location = ".")
+toc()
+tic()
+results = dmbvs(XX = XX, YY = YY, intercept_variance = intercept_variance,
+                slab_variance = slab_variance, bb_alpha = bb_alpha,
+                bb_beta = bb_beta, GG = GG, thin = thin, burn = burn,
+                init_beta = "warmstart", init_alpha = "warmstart",
+                proposal_alpha = proposal_alpha, proposal_beta = proposal_beta,
+                exec = executable_location, selection_type = "Gibbs",
+                output_location = ".")
+toc()
 params = data.frame(GG, burn, thin, intercept_variance,
                     slab_variance, bb_alpha, bb_beta,
                     proposal_alpha, proposal_beta)
@@ -90,3 +101,4 @@ plot.ts(results$beta[,fortraces], main = "Some selected beta traceplots",
 
 # visualize the associations
 association_plot(MPPI[,-5], graph_layout = "bipartite", main = "Sample Results")
+

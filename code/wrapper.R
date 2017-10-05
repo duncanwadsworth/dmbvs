@@ -27,6 +27,8 @@
 #' @param output_location if NULL, output goes to an the directory output/
 #' created in the working directory
 #' @param r_seed an integer seed to pass to GSL's random number generator
+#' @param selection_type either "ss" (Stochastic Search) or "Gibbs", determines
+#' the MCMC mechanism for variable selection
 #'
 #' @return alpha: a matrix with iterations in the rows and the alphas in the
 #' columns
@@ -41,7 +43,7 @@
 dmbvs = function(XX, YY, intercept_variance, slab_variance, bb_alpha, bb_beta,
                  GG, thin, burn, proposal_alpha = 0.5, proposal_beta = 0.5,
                  init_alpha = 0, init_beta = 0, exec = file.path(".","dmbvs.x"),
-                 output_location = NULL, r_seed = NULL){
+                 output_location = NULL, r_seed = NULL, selection_type = "Gibbs"){
 
   # data dimensions
   n_cats = ncol(YY)
@@ -56,6 +58,7 @@ dmbvs = function(XX, YY, intercept_variance, slab_variance, bb_alpha, bb_beta,
   if(burn > GG){stop("burnin greater than the number of iterations")}
   if(any(intercept_variance < 0, slab_variance < 0, bb_alpha < 0, bb_beta < 0)){stop("check hyperparameter values: at least one is negative")}
   if((length(proposal_beta) != 1) & (nrow(as.matrix(proposal_beta)) != n_cats) & (ncol(as.matrix(proposal_beta)) != n_vars)){stop("bad dimension for proposal_beta")}
+  if(!(selection_type %in% c("ss", "Gibbs"))){stop("unrecognized variable selection type: choose ss or Gibbs")}
 
   # set output location
   # for extremely long runs it's necessary to leave output in a subdirectory of the
@@ -162,9 +165,15 @@ dmbvs = function(XX, YY, intercept_variance, slab_variance, bb_alpha, bb_beta,
     stop("problem with external seed to pass to GSL")
   }
   # run compiled code
-  command = paste(exec, GG, thin, burn, intercept_variance, slab_variance,
-                  bb_alpha, bb_beta, n_cats, n_obs, n_vars, a_random_seed,
-                  out_dir, ">", paste0("dmbvs-pid-", Sys.getpid(), ".out"))
+  if(selection_type == "ss"){
+    command = paste(exec, GG, thin, burn, intercept_variance, slab_variance,
+                    bb_alpha, bb_beta, n_cats, n_obs, n_vars, a_random_seed,
+                    out_dir, 0, ">", paste0("dmbvs-pid-", Sys.getpid(), ".out"))
+  } else if(selection_type == "Gibbs"){
+    command = paste(exec, GG, thin, burn, intercept_variance, slab_variance,
+                    bb_alpha, bb_beta, n_cats, n_obs, n_vars, a_random_seed,
+                    out_dir, 1, ">", paste0("dmbvs-pid-", Sys.getpid(), ".out"))
+  }
   system(command)
   # read output
   aa = utils::read.table(file.path(out_dir, "alpha.out"))

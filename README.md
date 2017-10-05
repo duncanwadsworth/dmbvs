@@ -16,6 +16,11 @@ manuscript:
 > Vannucci, M. (2016). An Integrative Bayesian Dirichlet-Multinomial Regression 
 > Model for the Analysis of Taxonomic Abundances in Microbiome data.
 
+The code has been updated on 10/02/17 with an option to perform a stochastic 
+search algorithm for Bayesian variable selection instead of the Gibbs sampler. 
+The stochastic search variable selection approach provides gains in computational 
+speed.
+
 ### Contents
 
 The repository contains 

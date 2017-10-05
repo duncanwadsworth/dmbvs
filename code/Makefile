@@ -3,8 +3,8 @@
 ## file and path names
 ## LIBS and INCS may need to be changed
 INPUT = dmbvs
-LIBS = /opt/local/lib
-INCS = /opt/local/include
+LIBS = /usr/local/lib
+INCS = /usr/local/include
 
 compile:
 	#clang -I$(INCS) -L$(LIBS) -Wall $(INPUT).c -o $(INPUT).x -lgsl -lgslcblas -lm

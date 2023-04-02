@@ -1,7 +1,8 @@
 dmbvs
 ===
 
----
+> **Important**\
+> This repo is no longer maintained and its contents have been superseded by functions in [https://github.com/mkoslovsky/MicroBVS](https://github.com/mkoslovsky/MicroBVS)
 
 ### Description
 
